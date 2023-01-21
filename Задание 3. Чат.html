@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+     * {
+  color: #03045E;
+}
+.chat {
+  width:500px;
+  border:3px solid #00B4D8;
+  box-shadow: 10px 10px 5px #8d99ae;
+  padding:10px;
+}
+.chat__message {
+  width:305px;
+  background:#90E0EF;
+  border:1px solid #00B4D8;
+  margin-right:4px;
+}
+.chat__message:focus {
+  border:1px solid #00B4D8;
+}
+.chat__btn {
+  background:#90E0EF;
+  border:1px solid #00B4D8;
+}
+.chat__box {
+  border:1px solid #00B4D8;
+  background:#90E0EF;
+  width:475px;
+  display: flex; 
+  height: auto;
+  margin-top:15px;
+  padding:10px;
+  
+}
+.chat__box--serverItem {
+  width:220px;
+  margin-top:20px;
+  margin-right:25px;
+
+}
+.chat__box--serverItem p,
+.chat__box--userItem p{
+  dispaly:block;
+  width:220px;
+  border-radius:10px;
+  padding:3px;
+  margin-bottom:10px;
+  background:rgba(255, 255, 255, 0.4);
+}
+.chat__box--userItem {
+  width:220px;
+  text-align:right;
+}
+.chat__box--userItem p {
+  background:rgba(255, 255, 255, 0.8);
+}
+    </style>
+</head>
+<body>
+  <div class="chat">
+    <p class="chat__text">Введите сообщение и нажмите кнопку</p>
+    <input type="text" name="" class="chat__message" value="">
+    <button class="chat__btn">Отправить</button>
+    <button class="chat__btn chat__btn--location">Гео-локация</button>
+    <div class="chat__box">
+      <div class="chat__box--serverItem"></div>
+      <div class="chat__box--userItem"></div>
+    </div>   
+  </div> 
+  
+  
+  
+      <script>
+        const wsUrl = "wss://echo-ws-service.herokuapp.com";
+const btnSend = document.querySelector(".chat__btn");
+const btnLocation = document.querySelector(".chat__btn--location");
+const chatBox = document.querySelector(".chat__box");
+const serverItem = document.querySelector(".chat__box--serverItem");
+const userItem = document.querySelector(".chat__box--userItem");
+
+let websocket;
+function printToChat(message){  
+  function user(){
+    let paragraphUserItem = document.createElement("p");
+    paragraphUserItem.innerHTML = message;
+    userItem.appendChild(paragraphUserItem);
+  }
+  setTimeout(user, 500);
+}
+
+function printToChatServer(message){
+  function server(){
+    let paragraphServerItem = document.createElement("p");
+    paragraphServerItem.innerHTML = message;
+    serverItem.appendChild(paragraphServerItem);
+  }
+  setTimeout(server, 500);
+  
+}
+
+btnSend.addEventListener ("click", () => {
+  const message = document.querySelector(".chat__message").value;
+  websocket = new WebSocket(wsUrl);
+  websocket.onopen = function(evt) {
+    printToChat(message);  
+    websocket.send(message);
+  };
+  websocket.onmessage = function(event) {
+    printToChatServer(event.data);
+  };
+  document.querySelector(".chat__message").value = "";
+})
+
+btnLocation.addEventListener ("click", ()=> {
+  if (!navigator.geolocation){
+    let messageLocation = "Браузер не поддерживает определение местоположения";    
+    printToChatServer(messageLocation);
+ } else {
+   navigator.geolocation.getCurrentPosition(map);
+ }
+  
+  
+})
+function map(position){
+    const latitude  = position.coords.latitude;
+    const longitude = position.coords.longitude;
+    let mapLink = document.createElement("a");
+    mapLink.href = `https://www.openstreetmap.org/#map=18/${latitude}/${longitude}`;
+    mapLink.target="_blank";
+    mapLink.textContent = "Ссылка на вашу геопозицию";
+    serverItem.appendChild(mapLink);
+  }
+
+
+
+
+      </script>
+      
+      
+</body>
+</html>
